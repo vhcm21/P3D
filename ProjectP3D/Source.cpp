@@ -19,6 +19,10 @@
 #include <glm/gtc/type_ptr.hpp> 
 #pragma endregion
 #include "LoadShaders.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void init(void);
 
 #define WIDTH 800
@@ -28,6 +32,8 @@ void init(void);
 #define NumBuffers 3 // Vértices, Cores
 GLuint VAOs[NumVAOs];
 GLuint Buffers[NumBuffers];
+
+GLuint programa;
 
 GLfloat ZOOM = 10.0f;
 
@@ -132,8 +138,6 @@ void loadOBJ(const char *path, std::vector <glm::vec3> &out_vertices, std::vecto
 				data >> normalIndex[i];
 			}
 
-			std::cout << uvIndex[1];
-
 			vertexIndices.push_back(vertexIndex[0]);
 			vertexIndices.push_back(vertexIndex[1]);
 			vertexIndices.push_back(vertexIndex[2]);
@@ -204,35 +208,6 @@ std::vector<glm::vec3> Load3DModel(void) {
 	return ret;
 }
 
-void showCube(std::vector<glm::vec3> obj, glm::mat4 mvp) {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // | ->operação bit a bit
-
-	float *vertex_stream = static_cast<float*>(glm::value_ptr(obj.front()));
-
-	std::vector<glm::vec3> colors{
-		glm::vec3(1.0f, 0.0f, 0.0f), // Red
-		glm::vec3(1.0f, 1.0f, 0.0f), // Yellow
-		glm::vec3(0.0f, 1.0f, 0.0f), // Green
-		glm::vec3(0.0f, 1.0f, 1.0f), // Cyan
-		glm::vec3(0.0f, 0.0f, 1.0f), // Blue
-		glm::vec3(1.0f, 0.0f, 1.0f)  // Magenta
-	};
-
-	// Desenha quad em modo imediato
-	glBegin(GL_QUADS);
-	for (int nv = 0; nv < 6 * 4 * 3; nv += 3) {
-		glColor3f(colors[nv / (4 * 3)].r, colors[nv / (4 * 3)].g, colors[nv / (4 * 3)].b);
-		glm::vec4 vertex = glm::vec4(vertex_stream[nv], vertex_stream[nv + 1], vertex_stream[nv + 2], 1.0f);
-		// Cálculo das coordenadas de recorte
-		glm::vec4 transformed_vertex = mvp * vertex;
-		// Divisão de Perspetiva
-		glm::vec4 normalized_vertex = transformed_vertex / transformed_vertex.w;
-		// Desenho do vértice
-		glVertex3f(normalized_vertex.x, normalized_vertex.y, normalized_vertex.z);
-	}
-	glEnd();
-}
-
 void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices, 
 	std::vector <glm::vec2> &textures, std::vector <glm::vec3> &normals) {
 	// ****************************************************
@@ -285,12 +260,12 @@ void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices,
 	// ****************************************************
 
 	ShaderInfo  shaders[] = {
-		{ GL_VERTEX_SHADER,   "triangles.vert" },
-		{ GL_FRAGMENT_SHADER, "triangles.frag" },
+		{ GL_VERTEX_SHADER,   "vertShader.vert" },
+		{ GL_FRAGMENT_SHADER, "fragShader.frag" },
 		{ GL_NONE, NULL }
 	};
 
-	GLuint programa = LoadShaders(shaders);
+	programa = LoadShaders(shaders);
 	if (!programa) exit(EXIT_FAILURE);
 	glUseProgram(programa);
 
@@ -304,9 +279,7 @@ void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices,
 	// Obtém a localização do atributo 'vPosition' no 'programa'.
 	//GLint coordsId = glGetAttribLocation(programa, "vPosition"); // Para versões anteriores à 4.3
 	GLint coordsId = glGetProgramResourceLocation(programa, GL_PROGRAM_INPUT, "vPosition"); // Para versões >= 4.3
-	// Obtém a localização do atributo 'vColors' no 'programa'.
-	//GLint coresId = glGetAttribLocation(programa, "vColors"); // Para versões anteriores à 4.3
-	GLint coresId = glGetProgramResourceLocation(programa, GL_PROGRAM_INPUT, "vColors"); // Para versões >= 4.3
+	GLint uvsId = glGetProgramResourceLocation(programa, GL_PROGRAM_INPUT, "vTextureCoords");
 
 	//glBindVertexArray(VAOs[0]); // Não é necessário fazer o bind do VAO, pois ele já é o que está ativo no contexto do OpenGL.
 
@@ -317,7 +290,7 @@ void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices,
 	// É neste ponto que o VBO fica associado ao VAO.
 	// Especifica também como é que a informação do atributo 'coordsId' deve ser interpretada.
 	// Neste caso, o atributo irá receber, por vértice, 2 elementos do tipo float.
-	glVertexAttribPointer(coordsId, 2 /*2 elementos por vértice*/, GL_FLOAT/*do tipo float*/, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(coordsId, 3 /*2 elementos por vértice*/, GL_FLOAT/*do tipo float*/, GL_FALSE, 0, nullptr);
 
 	// Ativa o VBO 'Buffers[1]'.
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[1]);
@@ -326,18 +299,78 @@ void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices,
 	// É neste ponto que o VBO fica associado ao VAO.
 	// Especifica também como é que a informação do atributo 'coordsId' deve ser interpretada.
 	// Neste caso, o atributo irá receber, por vértice, 3 elementos do tipo float.
-	glVertexAttribPointer(coresId, 3 /*3 elementos por vértice*/, GL_FLOAT/*do tipo float*/, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(uvsId, 2 /*3 elementos por vértice*/, GL_FLOAT/*do tipo float*/, GL_FALSE, 0, nullptr);
 
 	// Habitita o atributo com localização 'coresId' para o VAO ativo.
 	// Os atributos de um VAO estão desativados por defeito.
 	glEnableVertexAttribArray(coordsId);
 	// Habitita o atributo com localização 'coresId' para o VAO ativo.
 	// Os atributos de um VAO estão desativados por defeito.
-	glEnableVertexAttribArray(coresId);
+	glEnableVertexAttribArray(uvsId);
 }
+
+void display(std::vector <glm::vec3> &vertices) {
+	static const GLfloat black[] = {
+		0.0f, 0.0f, 0.0f, 0.0f
+	};
+	// Limpa o buffer de cor
+	glClearBufferfv(GL_COLOR, 0, black);
+
+	// Vincula (torna ativo) o VAO
+	glBindVertexArray(VAOs[0]);
+	// Envia comando para desenho de primitivas GL_TRIANGLES, que utilizará os dados do VAO vinculado.
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+}
+
+void load_texture(void) {
+	GLuint textureName = 0;
+
+	// Gera um nome de textura
+	glGenTextures(1, &textureName);
+
+	// Ativa a Unidade de Textura #0
+	// A Unidade de Textura 0 já está ativa por defeito.
+	// Só uma Unidade de Textura está ativa a cada momento.
+	glActiveTexture(GL_TEXTURE0);
+
+	// Vincula esse nome de textura ao target GL_TEXTURE_2D da Unidade de Textura ativa.
+	glBindTexture(GL_TEXTURE_2D, textureName);
+
+	// Define os parâmetros de filtragem (wrapping e ajuste de tamanho)
+	// para a textura que está vinculada ao target GL_TEXTURE_2D da Unidade de Textura ativa.
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Leitura/descompressão do ficheiro com imagem de textura
+	int width, height, nChannels;
+	// Ativa a inversão vertical da imagem, aquando da sua leitura para memória.
+	stbi_set_flip_vertically_on_load(true);
+	// Leitura da imagem para memória do CPU
+	unsigned char *imageData = stbi_load("C:\\Users\\VitorHugodeCastroeMe\\Desktop\\P3D-TP\\Iron_Man\\Iron_Man_D.tga", &width, &height, &nChannels, 0);
+	if (imageData) {
+		// Carrega os dados da imagem para o Objeto de Textura vinculado ao target GL_TEXTURE_2D da Unidade de Textura ativa.
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, nChannels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, imageData);
+
+		// Gera o Mipmap para essa textura
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		// Liberta a imagem da memória do CPU
+		stbi_image_free(imageData);
+	}
+	else {
+		std::cout << "Error loading texture!" << std::endl;
+	}
+}
+
 
 int main(void) {
 	//std::vector<glm::vec3> obj = Load3DModel();
+
+	std::vector <glm::vec3> vertices;
+	std::vector <glm::vec2> textures;
+	std::vector <glm::vec3> normals;
 
 	GLFWwindow *window;
 
@@ -353,7 +386,16 @@ int main(void) {
 
 	glewInit();
 
+	load_texture();
+
 	init();
+
+	init_two_VBO_Packed_Arrays(vertices, textures, normals);
+
+	// Indicação da Unidade de Textura a ligar ao sampler 'TexSampler'.
+	//glUniform1i(glGetUniformLocation(programa, "TexSampler"), 0 /* Unidade de Textura #0 */);
+	GLint locationTexSampler = glGetProgramResourceLocation(programa, GL_UNIFORM, "TexSampler");
+	glProgramUniform1i(programa, locationTexSampler, 0 /* Unidade de Textura #0 */);
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -362,15 +404,15 @@ int main(void) {
 	glfwSetScrollCallback(window, scrollCallback);
 
 	char path[128] = "C:\\Users\\VitorHugodeCastroeMe\\Desktop\\P3D-TP\\Iron_Man\\Iron_Man.obj";
-	std::vector <glm::vec3> vertices;
-	std::vector <glm::vec2> textures;
-	std::vector <glm::vec3> normals;
 	loadOBJ(path, vertices, textures, normals);
 
 	// Projection
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(WIDTH) / float(HEIGHT), 0.1f, 100.f);
 
 	while (!glfwWindowShouldClose(window)) {
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
 		// View
 		glm::mat4 view = glm::lookAt(
 			glm::vec3(0.0f, 0.0f, ZOOM),	// Posição da câmara no mundo
@@ -387,9 +429,7 @@ int main(void) {
 		// MVP
 		glm::mat4 mvp = projection * view * model;
 
-		//showCube(obj, mvp);
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-
+		display(vertices);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
