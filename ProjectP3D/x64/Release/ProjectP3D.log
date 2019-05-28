@@ -1,13 +1,13 @@
 ﻿  Source.cpp
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(49): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(50): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(61): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(62): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
+c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(56): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(57): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(68): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(69): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+MSVCRT.lib(initializers.obj) : warning LNK4098: defaultlib 'libcmt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
-  2 of 477 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+  24 of 441 functions ( 5.4%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    20 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
 glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\VitorHugodeCastroeMe\source\repos\ProjectP3D\x64\Release\vc120.pdb'; linking object as if no debug info
   ProjectP3D.vcxproj -> C:\Users\VitorHugodeCastroeMe\source\repos\ProjectP3D\x64\Release\ProjectP3D.exe
