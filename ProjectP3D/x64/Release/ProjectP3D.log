@@ -1,13 +1,1 @@
-﻿  LoadShaders.cpp
-  Source.cpp
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(62): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(63): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(74): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(75): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\vitorhugodecastroeme\source\repos\projectp3d\projectp3d\source.cpp(322): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-MSVCRT.lib(initializers.obj) : warning LNK4098: defaultlib 'libcmt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
-  Generating code
-  All 611 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  Finished generating code
-glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\VitorHugodeCastroeMe\source\repos\ProjectP3D\x64\Release\vc120.pdb'; linking object as if no debug info
-  ProjectP3D.vcxproj -> C:\Users\VitorHugodeCastroeMe\source\repos\ProjectP3D\x64\Release\ProjectP3D.exe
+﻿

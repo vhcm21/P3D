@@ -208,7 +208,7 @@ std::vector<glm::vec3> Load3DModel(void) {
 	return ret;
 }
 
-void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices, 
+void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> &vertices, 
 	std::vector <glm::vec2> &textures, std::vector <glm::vec3> &normals) {
 	// ****************************************************
 	// VAOs - Vertex Array Objects
@@ -260,8 +260,8 @@ void init_two_VBO_Packed_Arrays(std::vector <glm::vec3> vertices,
 	// ****************************************************
 
 	ShaderInfo  shaders[] = {
-		{ GL_VERTEX_SHADER,   "vertShader.vert" },
-		{ GL_FRAGMENT_SHADER, "fragShader.frag" },
+		{ GL_VERTEX_SHADER,   "shaders/vertShader.vert" },
+		{ GL_FRAGMENT_SHADER, "shaders/fragShader.frag" },
 		{ GL_NONE, NULL }
 	};
 
@@ -410,8 +410,6 @@ int main(void) {
 	glm::mat4 projection = glm::perspective(glm::radians(45.0f), float(WIDTH) / float(HEIGHT), 0.1f, 100.f);
 
 	while (!glfwWindowShouldClose(window)) {
-
-		glClear(GL_COLOR_BUFFER_BIT);
 
 		// View
 		glm::mat4 view = glm::lookAt(
